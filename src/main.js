@@ -23,13 +23,24 @@ setTimeout(() => {
   demo()
 })
 
-const format = arrOfStr => isEmpty(arrOfStr) ? "" : "{"+arrOfStr.filter(s => !isEmpty(s)).join(",")+"}"
+const format = (arrOfStr, level) => {
+  if (isEmpty(arrOfStr)) {
+    return ''
+  }
+  let tabs = ''
+  while (level > 0) {
+    level--
+    tabs+='  '
+  }
+  return `{ `+arrOfStr.filter(s => !isEmpty(s)).join(`\n${tabs}, `)+`\n${tabs}}`
+}
+
 const skip =
   val =>
   isUndefined(val) || isNull(val) ||
   isFunction(val) || isNaN(val) || isDate(val)
 
-const parse = (node) =>
+const parse = (node, level = 0) =>
   Object.keys(node).reduce((acc, key) => {
     const val = node[key]
     let result
@@ -39,11 +50,12 @@ const parse = (node) =>
     }
 
     if (isObject(val) && !isArray(val)) {
-      return [...acc, format(parse(val))]
+      return [...acc, format(parse(val, level+1), level+1)]
     }
 
     if (isArray(val)) {
-      // TODO: ensure all elements have same type
+      // TODO: ensure all elements have same type,
+      // then can serialize them
       result = [...acc, `${key} = []`]
     } else if (isString(val)) {
       result = `${key} = "${val}"`
