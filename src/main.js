@@ -12,27 +12,41 @@ import {
   isEmpty,
 } from 'lodash'
 
-let output, input, button, buttonClean
-setTimeout(() => {
-  output = document.getElementById('output')
-  input = document.getElementById('input')
-  buttonClean = document.getElementById('clean')
-  buttonClean.onclick = clean
-  button = document.getElementById('parse')
-  button.onclick = doIt
-  demo()
-})
+const demo = JSON.stringify({
+    "match":{
+      "path":"/",
+      "url":"/",
+      "isExact":true,
+      "params":{}
+    },
+    "history":{
+      "length":3,
+      "action":"POP",
+      "location":{
+        "pathname":"/",
+        "search":"",
+        "hash":""
+      }
+    }
+  }, null, 2)
+
+const getSpaces = level => {
+  let spaces = ''
+  while (level > 0) {
+    level--
+    spaces+='  '
+  }
+  return spaces
+}
 
 const format = (arrOfStr, level) => {
   if (isEmpty(arrOfStr)) {
     return ''
   }
-  let tabs = ''
-  while (level > 0) {
-    level--
-    tabs+='  '
-  }
-  return `{ `+arrOfStr.filter(s => !isEmpty(s)).join(`\n${tabs}, `)+`\n${tabs}}`
+  const tabs = getSpaces(level)
+  return `{ ` +
+    arrOfStr.filter(s => !isEmpty(s)).join(`\n${tabs}, `) +
+    `\n${tabs}}`
 }
 
 const skip =
@@ -50,7 +64,13 @@ const parse = (node, level = 0) =>
     }
 
     if (isObject(val) && !isArray(val)) {
-      return [...acc, format(parse(val, level+1), level+1)]
+      const nextLevel = level+1
+      const parsed = parse(val, nextLevel)
+      if (parsed.length > 0) {
+        const tabs = getSpaces(nextLevel)
+        return [...acc, `${key} = \n${tabs}${format(parsed, nextLevel)}`]
+      }
+      return acc
     }
 
     if (isArray(val)) {
@@ -59,8 +79,11 @@ const parse = (node, level = 0) =>
       result = [...acc, `${key} = []`]
     } else if (isString(val)) {
       result = `${key} = "${val}"`
-    } else if (isNumber(val) || isBoolean(val)) {
+    } else if (isNumber(val)) {
       result = `${key} = ${val}`
+    } else if (isBoolean(val))  {
+      const value = val.toString()
+      result = `${key} = ${value[0].toUpperCase()}${value.slice(1)}`
     } else {
       result = `${key} = "${val.toString()}"`
     }
@@ -68,47 +91,20 @@ const parse = (node, level = 0) =>
     return [...acc, result]
   }, [])
 
-function doIt() {
+
+const output = document.getElementById('output')
+const input = document.getElementById('input')
+const onInput = ({ target }) => {
+  let result
   try {
-    const json = JSON.parse(input.value)
-    const result = format(parse(json))
-    console.log(result)
-    output.value = result
+    const json = JSON.parse(target.value)
+    result = format(parse(json))
   } catch(e) {
-    alert(e)
+    result = `Invalid JSON: ${e.message}`
   }
+  output.value = result
 }
-
-function clean() {
-  input.value = ""
-  output.value = ""
-}
-
-function demo() {
-  input.value = JSON.stringify({
-    "match":{
-      "path":"/",
-      "url":"/",
-      "isExact":true,
-      "params":{
-
-      }
-    },
-    "location":{
-      "pathname":"/",
-      "search":"",
-      "hash":""
-    },
-    "history":{
-      "length":3,
-      "action":"POP",
-      "location":{
-        "pathname":"/",
-        "search":"",
-        "hash":""
-      }
-    }
-  })
-  doIt()
-}
+input.oninput = onInput
+input.value = demo
+onInput({ target: input })
 

@@ -4,26 +4,60 @@
 <meta name="description" content="Convert JSON to valid Elm data structure (record)">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+  <style>
+    textarea {
+      width: 100%;
+      resize: none;
+      border: none;
+    }
+  </style>
   <title>JS Bin</title>
 </head>
 <body>
-<script src="bundle.js"></script>
+<div class="container-fluid">
+  <article class="row">
+    <header class="page-header col-xs-12">
+      <h1>JSON to Elm record</h1>
+    </header>
+    <section class="col-xs-12">
+      <div>
+        <div class="col-xs-6 col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h3 class="panel-title">JSON</h3>
+            </div>
+            <div class="panel-body">
+              <textarea rows="12" id="input"
+                placeholder="Paste your JSON here"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <h3 class="panel-title">Elm record</h3>
+            </div>
+            <div class="panel-body">
+              <textarea rows="12" id="output"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <article>
-    <h1>JSON to Elm model</h1>
-    <section>
-      <div>
-        <h3>Input</h3>
-        <textarea cols="32" rows="10" id="input"></textarea>
-      </div>
-      <div>
-        <h3>Output</h3>
-        <textarea cols="32" rows="10" id="output"></textarea>
-      </div>
     </section>
-
-    <button id="parse">Parse JSON</button>
-    <button id="clean">Clean</button>
-
+    <aside class="col-xs-12">
+      <h2>Notes</h2>
+      <p>Input must be a valid JSON, not JS object</p>
+      <p>Not supported values:</li>
+      <ul>
+        <li><code>null</code> is not translated</li>
+        <li>array translates to empty lists</li>
+      </ul>
+    </aside>
   </article>
+  <script src="bundle.js"></script>
+</div>
+</body>
 </html>
