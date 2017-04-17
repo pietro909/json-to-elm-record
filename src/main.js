@@ -54,42 +54,45 @@ const skip =
   isUndefined(val) || isNull(val) ||
   isFunction(val) || isNaN(val) || isDate(val)
 
-const parse = (node, level = 0) =>
-  Object.keys(node).reduce((acc, key) => {
+const makeNode =
+  (level, name, value, type, children) => ({ name, level, value, type, children})
+
+const findNode =
+  (name, tree) => {
+    const children = tree.children
+    for (let child in children) {
+      if (children.hasOwnProperty(child) && child.name === name) {
+        return child
+      }
+    }
+  }
+
+const appendToNode = (targetName, children, tree) =>
+  findNode(targetName, tree).value = children
+
+const parse = (id, node, level = 0) =>
+  Object.keys(node).reduce((tree, key) => {
     const val = node[key]
-    let result
+    const astNode = makeNode(level, key)
 
     if (skip(val)) {
-      return acc
+      return tree
     }
 
     if (isObject(val) && !isArray(val)) {
-      const nextLevel = level+1
-      const parsed = parse(val, nextLevel)
-      if (parsed.length > 0) {
-        const tabs = getSpaces(nextLevel)
-        return [...acc, `${key} = \n${tabs}${format(parsed, nextLevel)}`]
-      }
-      return acc
+      return tree
     }
 
     if (isArray(val)) {
       // TODO: ensure all elements have same type,
       // then can serialize them
-      result = [...acc, `${key} = []`]
+      astNode.val = []
     } else if (isString(val)) {
-      result = `${key} = "${val}"`
-    } else if (isNumber(val)) {
-      result = `${key} = ${val}`
-    } else if (isBoolean(val))  {
-      const value = val.toString()
-      result = `${key} = ${value[0].toUpperCase()}${value.slice(1)}`
-    } else {
-      result = `${key} = "${val.toString()}"`
+      astNode.value = val
     }
-
-    return [...acc, result]
-  }, [])
+    tree.value.push(astNode)
+    return node
+  }, makeNode(0, id, [])
 
 
 const output = document.getElementById('output')
@@ -98,7 +101,7 @@ const onInput = ({ target }) => {
   let result
   try {
     const json = JSON.parse(target.value)
-    result = format(parse(json))
+    result = parse(json)
   } catch(e) {
     result = `Invalid JSON: ${e.message}`
   }
